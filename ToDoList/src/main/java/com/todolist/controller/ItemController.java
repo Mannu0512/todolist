@@ -4,9 +4,12 @@ import com.todolist.entity.Item;
 import com.todolist.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.lang.String;
+import java.util.*;
 
 import java.util.List;
 
@@ -57,4 +60,37 @@ public class ItemController {
      serviceobj.deleteItem(id);
      return ResponseEntity.ok("Item deleted successfully with id:"+id);
     }
+
+    @PutMapping("/updateCompleted/{id}")
+    public ResponseEntity<Item> updateCompleted(
+            @PathVariable Long id,
+            @RequestBody Map<String, Boolean> body) {
+
+        boolean completed = body.get("completed");
+
+        return ResponseEntity.ok(
+                serviceobj.updateCompleted(id, completed)
+        );
+    }
+
+    //for pagination
+    @GetMapping("/items")
+    public Page<Item> getItems(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return serviceobj.getItems(page, size);
+    }
+
+//for search
+@GetMapping("/items/search")
+public Page<Item> searchItems(
+        @RequestParam(defaultValue = "itemNumber") String filter,
+        @RequestParam(defaultValue = "") String keyword,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
+) {
+    return serviceobj.searchItems(filter, keyword, page, size);
+}
+
 }

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo Items</title>
+    <style>
+        table { width:100%; border-collapse:collapse }
+        th, td { border:1px solid #ccc; padding:8px; text-align:center }
+        th { background:#eee }
+
+        .closed-btn {
+            background:#ccc;
+            cursor:not-allowed;
+            border:1px solid #999;
+        }
+    </style>
+</head>
+<body>
+
+<!--<h2>Todo Items</h2>-->
+
+<h2 style="display:flex; justify-content:space-between; align-items:centerl;">
+    Todo Items
+    <button onclick="goToCreate()" style="padding:6px 12px;">
+        ➕ Create Item
+    </button>
+</h2>
+
+
+<div style="float:right; margin-bottom:10px;">
+    <select id="filter">
+        <option value="itemNumber">ItemNumber</option>
+        <option value="title">Title</option>
+        <option value="status">Status</option>
+    </select>
+
+    <input type="text" id="searchText" placeholder="Search...">
+
+    <button onclick="search()">🔍</button>
+</div>
+
+
+<table>
+    <thead>
+        <tr>
+            <th>ItemNumber</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Action</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+
+    <!-- 🔥 IMPORTANT -->
+    <tbody id="body"></tbody>
+</table>
+
+<div style="margin-top:15px;">
+    <button onclick="prev()">⬅ Prev</button>
+
+    <span id="pageInfo"></span>
+
+    <button onclick="next()">Next ➡</button>
+
+    <select onchange="changeSize(this.value)">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="20">20</option>
+    </select>
+</div>
+
+<!--
+<script>
+const API_BASE = "http://localhost:8082/todolist";
+
+let page = 0;
+let size = 10;
+let totalPages = 0;
+
+fetch(`${API_BASE}/getAllitems`)
+.then(res => res.json())
+.then(items => {
+    const body = document.getElementById("body");
+    body.innerHTML = "";
+
+    items.forEach(i => {
+
+        const isDeleted = i.status === "DELETED";
+
+        body.innerHTML += `
+            <tr>
+                <td>${i.itemNumber ?? "-"}</td>
+                <td>${i.title}</td>
+                <td>${i.description}</td>
+                <td>${i.createdAt}</td>
+                <td>${i.updatedOn ?? "-"}</td>
+
+                <td>
+                    ${
+                        isDeleted
+                        ? `<button class="closed-btn" disabled>Closed</button>`
+                        : `<button onclick="openItem(${i.itemId})">Open</button>`
+                    }
+                </td>
+
+                <td style="color:${isDeleted ? 'red' : 'green'}">
+                    ${i.status}
+                </td>
+            </tr>
+        `;
+    });
+})
+.catch(err => {
+    console.error("❌ Error loading items:", err);
+});
+
+function openItem(id){
+    window.location.href = "item-details.html?id=" + id;
+}
+</script>
+-->
+
+<script>
+const API_BASE = "http://localhost:8082/todolist";
+
+let page = 0;
+let size = 10;
+let totalPages = 0;
+
+let currentFilter = "itemNumber";
+let currentKeyword = "";
+
+/* 🔹 LOAD ITEMS */
+function loadItems() {
+
+    const url = currentKeyword
+        ? `${API_BASE}/items/search?filter=${currentFilter}&keyword=${currentKeyword}&page=${page}&size=${size}`
+        : `${API_BASE}/items?page=${page}&size=${size}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+
+            totalPages = data.totalPages;
+            const body = document.getElementById("body");
+            body.innerHTML = "";
+
+            data.content.forEach(i => {
+
+                const isDeleted = i.status === "DELETED";
+
+                body.innerHTML += `
+                    <tr>
+                        <td>${i.itemNumber ?? "-"}</td>
+                        <td>${i.title}</td>
+                        <td>${i.description}</td>
+                        <td>${i.createdAt}</td>
+                        <td>${i.updatedOn ?? "-"}</td>
+
+                        <td>
+                            ${
+                                isDeleted
+                                ? `<button class="closed-btn" disabled>Closed</button>`
+                                : `<button onclick="openItem(${i.itemId})">Open</button>`
+                            }
+                        </td>
+
+                        <td style="color:${isDeleted ? 'red' : 'green'}">
+                            ${i.status}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("pageInfo").innerText =
+                `Page ${page + 1} of ${totalPages}`;
+        });
+}
+
+/* 🔹 SEARCH */
+function search() {
+    currentFilter = document.getElementById("filter").value;
+    currentKeyword = document.getElementById("searchText").value.trim();
+    page = 0;
+    loadItems();
+}
+
+/* 🔹 PAGINATION */
+function next() {
+    if (page < totalPages - 1) {
+        page++;
+        loadItems();
+    }
+}
+
+function prev() {
+    if (page > 0) {
+        page--;
+        loadItems();
+    }
+}
+
+/* 🔹 PAGE SIZE */
+function changeSize(val) {
+    size = parseInt(val);
+    page = 0;
+    loadItems();
+}
+
+function openItem(id) {
+    window.location.href = "item-details.html?id=" + id;
+}
+
+function goToCreate(){
+    window.location.href = "index.html";
+}
+
+
+/* 🔹 INITIAL LOAD */
+loadItems();
+</script>
+
+
+
+</body>
+</html>

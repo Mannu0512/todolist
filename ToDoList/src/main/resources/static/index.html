@@ -2,23 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Todo App</title>
+    <title>Create Todo Item</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-    <h1>📝 To Do List</h1>
+
+    <h1>📝 Create Todo Item</h1>
 
     <div class="input-box">
         <input type="text" id="titleInput" placeholder="Title">
         <input type="text" id="descInput" placeholder="Description">
-        <button onclick="addItem()">Add Item</button>
+        <button onclick="addItem()">➕ Add Item</button>
+          <!-- 🔙 Back to List -->
+    <button onclick="goBack()" style="margin-bottom:10px;">
+        ⬅ Back to Items
+    </button>
     </div>
 
-    <ul id="todoList"></ul>
 </div>
 
 <script src="script.js"></script>
+
+<script>
+    function goBack(){
+        window.location.href = "items.html";
+    }
+</script>
+
 </body>
 </html>

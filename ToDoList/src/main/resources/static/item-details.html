@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo Detail</title>
+    <style>
+        table { width: 60%; border-collapse: collapse }
+        th, td { border: 1px solid #ccc; padding: 10px ; text-align: center; background-color: lightblue;}
+        th { background: #eee }
+        select { padding: 5px }
+    </style>
+</head>
+<body>
+
+<h2>Todo Detail</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Action</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="title"></td>
+            <td id="desc"></td>
+            <td id="status"></td>
+            <td>
+                <select id="action" onchange="handleAction(this.value)">
+                    <option value="">Select</option>
+                </select>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br>
+
+<div style="text-align:left; margin-top:20px;">
+    <button onclick="goBack()">⬅ Back</button>
+</div>
+
+
+
+<script>
+const API_BASE = "http://localhost:8082/todolist";
+const id = new URLSearchParams(location.search).get("id");
+let completed = false;
+
+/* 🔹 LOAD ITEM */
+function loadItem(){
+    fetch(`${API_BASE}/getItemById/${id}`)
+        .then(r => r.json())
+        .then(i => {
+            document.getElementById("title").innerText = i.title;
+            document.getElementById("desc").innerText = i.description;
+            document.getElementById("status").innerText = i.status;
+            completed = i.completed;
+            renderActions();
+        });
+}
+
+/* 🔹 DROPDOWN LOGIC */
+function renderActions(){
+    const action = document.getElementById("action");
+    action.innerHTML = `<option value="">Select</option>`;
+
+    if(completed){
+        action.innerHTML += `<option value="undo">Undo</option>`;
+    }else{
+        action.innerHTML += `<option value="done">Done</option>`;
+    }
+
+    action.innerHTML += `
+        <option value="edit">Edit</option>
+        <option value="delete">Delete</option>
+    `;
+}
+
+/* 🔹 ACTION HANDLER */
+function handleAction(val){
+    if(val === "done" || val === "undo"){
+        fetch(`${API_BASE}/updateCompleted/${id}`,{
+            method:"PUT",
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({completed: val === "done"})
+        }).then(() => {
+        alert(val === "done" ? "✅ Marked Done" : "↩️ Undo Done");
+
+        loadItem();   // 🔥 STATUS + completed + dropdown sab refresh
+    });
+    }
+
+    if(val === "edit"){
+        const t = prompt("Title");
+        const d = prompt("Description");
+        if(!t) return;
+
+        fetch(`${API_BASE}/updateItembyId/${id}`,{
+            method:"PUT",
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({title:t, description:d})
+        }).then(() => {
+            alert("✏️ Updated");
+            loadItem();
+        });
+    }
+
+    if(val === "delete"){
+        if(!confirm("Delete item?")) return;
+
+        fetch(`${API_BASE}/deleteItembyId/${id}`,{
+            method:"DELETE"
+        }).then(() => {
+            alert("🗑️ Deleted");
+            location.href = "items.html";
+        });
+    }
+
+    document.getElementById("action").value="";
+}
+
+ function goBack() {
+        if (window.history.length > 1) {
+            window.location.replace("items.html");   // 🔙 browser history se
+        } else {
+           window.location.replace("items.html"); // 🧭 fallback
+        }
+    }
+
+loadItem();
+</script>
+
+</body>
+</html>
